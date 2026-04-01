@@ -81,24 +81,32 @@ Crea 3 interfaces que extiendan de `JpaRepository` (Spring se encarga de la magi
   con el mensaje de error y un código HTTP 404 (Not Found) o 400 (Bad Request).
 
 #### ⚙️ Capa Service (Lógica de Negocio y Mapeo)
-* Crea `RetroPixelService` e inyecta (`@Autowired`) los 3 repositorios (`CategoriaRepository`, `ArticuloRepository` y `PedidoRepository`).
-* **Responsabilidad de Mapeo:** Esta capa transformará las entidades traídas de la base de datos en sus respectivos 
-  DTOs antes de devolverlos al Controller.
-* **Métodos CRUD:** Implementa listar y crear categorías y artículos usando `.findAll()` y `.save()` de los repositorios.
+Para una arquitectura profesional, se divide la lógica en tres servicios independientes:
+
+**1. `CategoriaService`**
+* Inyecta (`@Autowired`) el `CategoriaRepository`.
+* Implementa métodos para listar (`findAll`) y crear (`save`) categorías mapeando a `CategoriaDto`.
+
+**2. `ArticuloService`**
+* Inyecta (`@Autowired`) el `ArticuloRepository`.
+* Implementa métodos para listar y crear artículos.
+* **Método `actualizarStock(Long id, Integer cantidad)`:** * Busca el artículo por ID. Si no existe -> lanza `ArticuloNoEncontradoException`.
+  * Verifica si el stock es suficiente; si no -> lanza `StockInsuficienteException`.
+  * Resta la cantidad al stock, guarda el cambio en la BD y devuelve la entidad actualizada.
+
+**3. `PedidoService`**
+* Inyecta (`@Autowired`) el `PedidoRepository` y el `ArticuloService`.
 * **Método `registrarPedido(CrearPedidoDto dto)`:**
   1. Crea una lista vacía `List<Articulo> articulosParaPedido = new ArrayList<>()`.
-  2. Recorre el `Map` que llega en el DTO (ID Artículo -> Cantidad).
-  3. Busca cada artículo por ID usando `articuloRepository.findById(id)`. Si no existe -> Lanza `ArticuloNoEncontradoException`.
-  4. Verifica el stock. Si la cantidad solicitada es mayor al stock -> Lanza `StockInsuficienteException`.
-  5. Resta el stock y actualiza el artículo en la base de datos con `articuloRepository.save(articulo)`.
-  6. Añade el artículo a la lista `articulosParaPedido` tantas veces como cantidad se haya solicitado (para simular la 
-     cantidad en la relación `@ManyToMany`).
-  7. Ve sumando el subtotal y cuenta cuántos artículos pertenecen a la categoría "JUEGO" y cuántos a "CONSOLA" 
-     (usando el nombre de la categoría del artículo).
-  8. **Aplica las reglas de negocio:**
-  * Si `cantidadJuegos > 3` -> `total = total * 0.85` (15% descuento).
-  * Si `cantidadConsolas >= 1` -> `total = total - 20.0`. *(Validación extra: asegúrate de que el total no sea menor a 0€).*
-  9. Guarda el `Pedido` en la BD con la lista de artículos, mapéalo a `PedidoDto` y devuélvelo.
+  2. Recorre el `Map` del DTO (ID Artículo -> Cantidad).
+  3. Por cada ID, llama a `articuloService.actualizarStock(id, cantidad)`.
+  4. Añade el artículo devuelto a la lista `articulosParaPedido` tantas veces como la cantidad solicitada.
+  5. Suma los precios para el subtotal y cuenta los artículos cuya categoría sea "JUEGO" o "CONSOLA".
+  6. **Aplica las reglas de negocio:**
+    * Si `cantidadJuegos > 3` -> `total = total * 0.85` (15% descuento).
+    * Si `cantidadConsolas >= 1` -> `total = total - 20.0`. *(Validación extra: el total no puede ser menor a 0€).*
+  7. Crea la entidad `Pedido` con la fecha actual, la lista de artículos y el total calculado.
+  8. Guarda el `Pedido` en la BD, mapéalo a `PedidoDto` y devuélvelo.
 
 #### 🌐 Capa Controller (Endpoints REST)
 * Crea `RetroPixelController` con `@RestController` y mapeado a `/api`.
