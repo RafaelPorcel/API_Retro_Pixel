@@ -109,12 +109,30 @@ Para una arquitectura profesional, se divide la lógica en tres servicios indepe
   8. Guarda el `Pedido` en la BD, mapéalo a `PedidoDto` y devuélvelo.
 
 #### 🌐 Capa Controller (Endpoints REST)
-* Crea `RetroPixelController` con `@RestController` y mapeado a `/api`.
-* El Controller **solo** debe interactuar con el Service, recibiendo y devolviendo DTOs.
-* Endpoints requeridos:
-  * `GET /api/categorias` -> Devuelve `List<CategoriaDto>`.
-  * `POST /api/categorias` -> Recibe un `Categoria` y devuelve `CategoriaDto`.
-  * `GET /api/articulos` -> Devuelve `List<ArticuloDto>`.
-  * `POST /api/articulos` -> Recibe un `Articulo` y devuelve `ArticuloDto`.
-  * `POST /api/pedidos` -> Recibe `CrearPedidoDto` y devuelve `PedidoDto` (con HTTP 201 Created).
-  * `GET /api/pedidos/{id}` -> Devuelve `PedidoDto`.
+Para mantener la coherencia con la capa de servicio, dividiremos la entrada de la API en tres controladores especializados. 
+Cada controlador debe interactuar **únicamente** con su servicio correspondiente y manejar exclusivamente DTOs.
+
+**1. `CategoriaController`**
+* Anótalo con `@RestController` y `@RequestMapping("/api/categorias")`.
+* Inyecta (`@Autowired`) el `CategoriaService`.
+* **Endpoints:**
+  * `GET` -> Llama a `categoriaService.listarTodas()` y devuelve `List<CategoriaDto>`.
+  * `POST` -> Recibe una entidad `Categoria`, llama a `categoriaService.crear()` y devuelve `CategoriaDto`.
+
+**2. `ArticuloController`**
+* Anótala con `@RestController` y `@RequestMapping("/api/articulos")`.
+* Inyecta (`@Autowired`) el `ArticuloService`.
+* **Endpoints:**
+  * `GET` -> Llama a `articuloService.listarTodos()` y devuelve `List<ArticuloDto>`.
+  * `POST` -> Recibe un `Articulo`, llama a `articuloService.crear()` y devuelve `ArticuloDto`.
+
+**3. `PedidoController`**
+* Anótala con `@RestController` y `@RequestMapping("/api/pedidos")`.
+* Inyecta (`@Autowired`) el `PedidoService`.
+* **Endpoints:**
+  * `POST` -> Recibe un `CrearPedidoDto`. Debe devolver el `PedidoDto` generado con un código de estado **HTTP 201 Created** 
+    (usando `@ResponseStatus(HttpStatus.CREATED)` o `ResponseEntity`).
+  * `GET /{id}` -> Recibe el ID por path variable, llama a `pedidoService.buscarPorId()` y devuelve el `PedidoDto`.
+
+> **Nota de Arquitectura:** Los controladores son la "cara" de tu aplicación. Su única función es recibir la petición, 
+> pasarle la pelota al servicio y entregar la respuesta. No deben contener lógica de descuentos ni de validación de stock.
