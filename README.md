@@ -24,7 +24,7 @@ categorización de productos y el procesamiento de ventas en tiempo real.
 
 ---
 
-## 🚀 Requisitos e Instalación
+##  Requisitos e Instalación
 
 ### Prerrequisitos
 Asegúrate de tener instalado en tu entorno local:
@@ -36,5 +36,4 @@ Asegúrate de tener instalado en tu entorno local:
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/tu-usuario/retropixel-api.git](https://github.com/tu-usuario/retropixel-api.git)
-   cd retropixel-api
+   git clone https://github.com/RafaelPorcel/API_Retro_Pixel

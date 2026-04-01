@@ -6,12 +6,14 @@
 videojuegos y accesorios. Hasta ahora lo llevo todo apuntado en una libreta y un Excel, pero esto es un caos.
 Necesito un programa, una API o como lo llaméis, que haga lo siguiente:*
 
-* *Quiero poder registrar mis **categorías** (ej: Consolas, Juegos, Accesorios) y mis **artículos** con su nombre, precio, la cantidad que tengo en la trastienda (stock) y saber a qué categoría pertenecen.*
+* *Quiero poder registrar mis **categorías** (ej: Consolas, Juegos, Accesorios) y mis **artículos** con su nombre, precio, 
+  * la cantidad que tengo en la trastienda (stock) y saber a qué categoría pertenecen.*
 * *Necesito poder registrar los **pedidos** que me hacen los clientes. Si alguien me pide 2 juegos y 1 mando, el
   sistema tiene que restar eso de mi stock automáticamente. ¡Y no me puede dejar vender algo que no tengo!*
 * *Para atraer clientes, tengo dos **promociones** en mente que el sistema debe calcular solo:*
   1. *Si un cliente compra **más de 3 videojuegos** en el mismo pedido, le hacemos un **15% de descuento** en toda su compra.*
-  2. *Si el cliente se lleva **al menos 1 consola**, le descontamos **20€ fijos** del total del ticket (es como si le regaláramos los gastos de envío y gestión).*
+  2. *Si el cliente se lleva **al menos 1 consola**, le descontamos **20€ fijos** del total del ticket (es como si le 
+     regaláramos los gastos de envío y gestión).*
 * *Ah, y por favor, cuando el sistema me muestre el ticket de venta o la lista de artículos al público,
   no quiero que se vea cuánto stock me queda, ¡es información confidencial de mi negocio!"*
 
@@ -49,19 +51,23 @@ Crearemos exactamente 3 entidades.
 * Anótala con `@Entity` y `@Table(name = "articulos")`.
 * **Primary Key:** `Long id` anotado con `@Id` y `@GeneratedValue(strategy = GenerationType.IDENTITY)`.
 * Atributos normales: `String titulo`, `Double precio`, `Integer stock`.
-* **Relación con Categoría:** `Categoria categoria` anotado con `@ManyToOne` y `@JoinColumn(name = "categoria_id")`. *(Muchos artículos pertenecen a una categoría).*
+* **Relación con Categoría:** `Categoria categoria` anotado con `@ManyToOne` y `@JoinColumn(name = "categoria_id")`. 
+  * *(Muchos artículos pertenecen a una categoría).*
 
 **3. Clase `Pedido`**
 * Anótala con `@Entity` y `@Table(name = "pedidos")`.
 * **Primary Key:** `Long id` anotado con `@Id` y `@GeneratedValue(strategy = GenerationType.IDENTITY)`.
 * Atributos normales: `LocalDateTime fecha`, `Double total`.
-* **Relación con Artículo:** `List<Articulo> articulosComprados` anotado con `@ManyToMany`. Puedes usar `@JoinTable(name = "pedido_articulo")` para nombrar la tabla intermedia que Spring creará automáticamente en MySQL. *(Un pedido tiene muchos artículos).*
+  * **Relación con Artículo:** `List<Articulo> articulosComprados` anotado con `@ManyToMany`. Puedes usar 
+    `@JoinTable(name = "pedido_articulo")` para nombrar la tabla intermedia que Spring creará automáticamente en MySQL. 
+    *(Un pedido tiene muchos artículos).*
 
 #### 📨 Capa DTO (Transferencia de Datos)
 * **`CategoriaDto`**: Debe exponer `id` y `nombre`.
 * **`ArticuloDto`**: Solo debe exponer `id`, `titulo`, `precio` y un objeto `CategoriaDto categoria`. (Ocultamos el stock).
 * **`PedidoDto`**: Debe exponer `id`, `fecha`, `List<ArticuloDto> articulosComprados` y el `total`.
-* **`CrearPedidoDto`**: Debe contener un `Map<Long, Integer> lineasPedido`. La clave (`Long`) será el ID del artículo, y el valor (`Integer`) será la cantidad que el cliente quiere comprar.
+* **`CrearPedidoDto`**: Debe contener un `Map<Long, Integer> lineasPedido`. La clave (`Long`) será el ID del artículo, 
+  y el valor (`Integer`) será la cantidad que el cliente quiere comprar.
 
 #### 🗄️ Capa Repository (Spring Data JPA)
 Crea 3 interfaces que extiendan de `JpaRepository` (Spring se encarga de la magia):
@@ -71,11 +77,13 @@ Crea 3 interfaces que extiendan de `JpaRepository` (Spring se encarga de la magi
 
 #### ⚠️ Capa Exception (Manejo de Errores)
 * Crea dos excepciones personalizadas (heredando de `RuntimeException`): `ArticuloNoEncontradoException` y `StockInsuficienteException`.
-* Crea un `GlobalExceptionHandler` con `@ControllerAdvice` para capturar estas excepciones y devolver un JSON limpio con el mensaje de error y un código HTTP 404 (Not Found) o 400 (Bad Request).
+* Crea un `GlobalExceptionHandler` con `@ControllerAdvice` para capturar estas excepciones y devolver un JSON limpio 
+  con el mensaje de error y un código HTTP 404 (Not Found) o 400 (Bad Request).
 
 #### ⚙️ Capa Service (Lógica de Negocio y Mapeo)
 * Crea `RetroPixelService` e inyecta (`@Autowired`) los 3 repositorios (`CategoriaRepository`, `ArticuloRepository` y `PedidoRepository`).
-* **Responsabilidad de Mapeo:** Esta capa transformará las entidades traídas de la base de datos en sus respectivos DTOs antes de devolverlos al Controller.
+* **Responsabilidad de Mapeo:** Esta capa transformará las entidades traídas de la base de datos en sus respectivos 
+  DTOs antes de devolverlos al Controller.
 * **Métodos CRUD:** Implementa listar y crear categorías y artículos usando `.findAll()` y `.save()` de los repositorios.
 * **Método `registrarPedido(CrearPedidoDto dto)`:**
   1. Crea una lista vacía `List<Articulo> articulosParaPedido = new ArrayList<>()`.
@@ -83,8 +91,10 @@ Crea 3 interfaces que extiendan de `JpaRepository` (Spring se encarga de la magi
   3. Busca cada artículo por ID usando `articuloRepository.findById(id)`. Si no existe -> Lanza `ArticuloNoEncontradoException`.
   4. Verifica el stock. Si la cantidad solicitada es mayor al stock -> Lanza `StockInsuficienteException`.
   5. Resta el stock y actualiza el artículo en la base de datos con `articuloRepository.save(articulo)`.
-  6. Añade el artículo a la lista `articulosParaPedido` tantas veces como cantidad se haya solicitado (para simular la cantidad en la relación `@ManyToMany`).
-  7. Ve sumando el subtotal y cuenta cuántos artículos pertenecen a la categoría "JUEGO" y cuántos a "CONSOLA" (usando el nombre de la categoría del artículo).
+  6. Añade el artículo a la lista `articulosParaPedido` tantas veces como cantidad se haya solicitado (para simular la 
+     cantidad en la relación `@ManyToMany`).
+  7. Ve sumando el subtotal y cuenta cuántos artículos pertenecen a la categoría "JUEGO" y cuántos a "CONSOLA" 
+     (usando el nombre de la categoría del artículo).
   8. **Aplica las reglas de negocio:**
   * Si `cantidadJuegos > 3` -> `total = total * 0.85` (15% descuento).
   * Si `cantidadConsolas >= 1` -> `total = total - 20.0`. *(Validación extra: asegúrate de que el total no sea menor a 0€).*

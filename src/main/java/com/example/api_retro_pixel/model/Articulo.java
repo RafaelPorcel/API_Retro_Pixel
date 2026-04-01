@@ -2,11 +2,9 @@ package com.example.api_retro_pixel.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@Data
 @Entity
+@Data
 @Table(name = "articulos")
 public class Articulo {
     @Id
@@ -15,5 +13,7 @@ public class Articulo {
     private String titulo;
     private double precio;
     private Integer stock;
+    @ManyToOne
+    @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 }
