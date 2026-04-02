@@ -4,4 +4,6 @@ public class ArticuloNoEncontradoException extends RuntimeException {
     public ArticuloNoEncontradoException(String message) {
         super(message);
     }
+
+    public ArticuloNoEncontradoException(String message, Throwable cause) { super(message, cause); }
 }
