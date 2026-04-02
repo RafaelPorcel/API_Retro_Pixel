@@ -37,3 +37,37 @@ Asegúrate de tener instalado en tu entorno local:
 1. **Clonar el repositorio:**
    ```bash
    git clone https://github.com/RafaelPorcel/API_Retro_Pixel
+
+
+
+
+
+erDiagram
+%% Relaciones
+CATEGORIA ||--o{ ARTICULO : "1 a Muchos (mappedBy)"
+PEDIDO }|--|{ ARTICULO : "Muchos a Muchos (@ManyToMany)"
+
+    %% Entidades y Atributos
+    CATEGORIA {
+        Long id PK "🔑 Clave Primaria"
+        String nombre "🏷️"
+    }
+
+    ARTICULO {
+        Long id PK "🔑 Clave Primaria"
+        String titulo "📝"
+        Double precio "💰"
+        Integer stock "📦"
+        Long categoria_id FK "🔗 Clave Foránea (Dueño)"
+    }
+
+    PEDIDO {
+        Long id PK "🔑 Clave Primaria"
+        LocalDateTime fecha "📅"
+        Double total "💶"
+    }
+
+    PEDIDO_ARTICULO {
+        Long pedido_id FK "🔗 Puente Pedido"
+        Long articulo_id FK "🔗 Puente Articulo"
+    }
