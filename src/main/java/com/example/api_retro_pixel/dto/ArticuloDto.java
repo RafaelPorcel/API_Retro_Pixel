@@ -7,5 +7,5 @@ public class ArticuloDto {
     private Long id;
     private String titulo;
     private double precio;
-    private CategoriaDto categoria;
+    private Long categoriaId;//Pedimos el id de la categoria
 }
