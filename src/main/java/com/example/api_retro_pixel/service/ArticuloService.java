@@ -8,8 +8,6 @@ import com.example.api_retro_pixel.repository.ArticuloRepository;
 import com.example.api_retro_pixel.repository.CategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,24 +22,30 @@ public class ArticuloService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
-    public List<ArticuloDto> listarArticulos () {
+    // Queremos que devuelva un Dto para no mostrar el stock
+    public List<ArticuloDto> listarArticulos() {
         return articuloRepository.findAll()
                 .stream()
                 .map(this::articuloToDto)
                 .collect(Collectors.toList());
     }
 
-    public Optional<Articulo> buscarArticuloPorId (Long id) {
+    public Optional<Articulo> buscarArticuloPorId(Long id) {
         return articuloRepository.findById(id);
     }
 
-    public ArticuloDto crearArticulo (CrearArticuloDto crearArticuloDto) {
+
+    // Transforma el ID de categoría del DTO en una entidad Categoria real buscando en BD.
+    // Construye la entidad Articulo que sí incluye el stock inicial (dato privado).
+    // Guarda en MySQL y retorna el "escaparate seguro" (ArticuloDto) ocultando el stock.
+    public ArticuloDto crearArticulo(CrearArticuloDto crearArticuloDto) {
         Categoria categoriaIdDelArticulo = categoriaRepository.findById(crearArticuloDto.getCategoriaId()).orElse(null);
         Articulo nuevoArticulo = new Articulo();
         nuevoArticulo.setTitulo(crearArticuloDto.getTitulo());
         nuevoArticulo.setPrecio(crearArticuloDto.getPrecio());
         nuevoArticulo.setCategoria(categoriaIdDelArticulo);
         nuevoArticulo.setStock(crearArticuloDto.getStock());
+
         Articulo articuloParaGuardar = articuloRepository.save(nuevoArticulo);
         return articuloToDto(articuloParaGuardar);
         // Asi se haría en una línea todo ->
@@ -50,7 +54,7 @@ public class ArticuloService {
 
     // --- MÉTODOS DE MAPEO ---
 
-    private ArticuloDto articuloToDto (Articulo articulo) {
+    private ArticuloDto articuloToDto(Articulo articulo) {
         ArticuloDto dto = new ArticuloDto();
         dto.setId(articulo.getId());
         dto.setTitulo(articulo.getTitulo());
