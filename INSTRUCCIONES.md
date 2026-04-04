@@ -91,7 +91,8 @@ Para una arquitectura profesional, se divide la lógica en tres servicios indepe
 **2. `ArticuloService`**
 * Inyecta (`@Autowired`) el `ArticuloRepository`.
 * Implementa métodos para listar y crear artículos.
-* **Método `actualizarStock(Long id, Integer cantidad)`:** * Busca el artículo por ID. Si no existe -> lanza `ArticuloNoEncontradoException`.
+* **Método `actualizarStock(Long id, Integer cantidad)`:
+* *** Busca el artículo por ID. Si no existe -> lanza `ArticuloNoEncontradoException`.
   * Verifica si el stock es suficiente; si no -> lanza `StockInsuficienteException`.
   * Resta la cantidad al stock, guarda el cambio en la BD y devuelve la entidad actualizada.
 
