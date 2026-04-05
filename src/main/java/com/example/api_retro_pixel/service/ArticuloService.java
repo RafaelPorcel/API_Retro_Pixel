@@ -2,6 +2,8 @@ package com.example.api_retro_pixel.service;
 
 import com.example.api_retro_pixel.dto.ArticuloDto;
 import com.example.api_retro_pixel.dto.CrearArticuloDto;
+import com.example.api_retro_pixel.exception.ArticuloNoEncontradoException;
+import com.example.api_retro_pixel.exception.StockInsuficienteException;
 import com.example.api_retro_pixel.model.Articulo;
 import com.example.api_retro_pixel.model.Categoria;
 import com.example.api_retro_pixel.repository.ArticuloRepository;
@@ -30,10 +32,11 @@ public class ArticuloService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Articulo> buscarArticuloPorId(Long id) {
-        return articuloRepository.findById(id);
+    public Articulo buscarArticuloPorId(Long id) {
+        return articuloRepository.findById(id).orElseThrow(
+                () -> new ArticuloNoEncontradoException("El artículo con ID " + id + " no existe")
+        );
     }
-
 
     // Transforma el ID de categoría del DTO en una entidad Categoria real buscando en BD.
     // Construye la entidad Articulo que sí incluye el stock inicial (dato privado).
@@ -51,6 +54,20 @@ public class ArticuloService {
         // Asi se haría en una línea todo ->
         //return articuloToDto(articuloRepository.save(nuevoArticulo));
     }
+
+    public Articulo actualizarStock(Long id, Integer cantidadComprada) {
+        Articulo articuloParaActualizarStock = buscarArticuloPorId(id);
+        Integer stock = articuloParaActualizarStock.getStock();
+        if (stock < cantidadComprada) {
+            throw new StockInsuficienteException(
+                    "No hay stock suficiente para el artículo con id: " + id + " y nombre: " + articuloParaActualizarStock.getTitulo()
+            );
+        }
+        Integer nuevoStock =  stock - cantidadComprada;
+        articuloParaActualizarStock.setStock(nuevoStock);
+        return articuloRepository.save(articuloParaActualizarStock);
+    }
+
 
     // --- MÉTODOS DE MAPEO ---
 
