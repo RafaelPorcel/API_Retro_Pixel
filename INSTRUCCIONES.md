@@ -120,6 +120,12 @@ Para una arquitectura profesional, se divide la lógica en tres servicios indepe
   7. Crea la entidad `Pedido` con la fecha actual, la lista de artículos y el total calculado.
   8. Guarda el `Pedido` en la BD, mapéalo a `PedidoDto` y devuélvelo.
 
+* **Método `buscarPorId(Long id)`:**
+  1. Utiliza el `pedidoRepository.findById(id)` para buscar el ticket en la base de datos.
+  2. Como `findById` devuelve un `Optional`, añade un `.orElseThrow(...)` para lanzar una excepción 
+  (ej: `new RuntimeException("Pedido no encontrado")`) si el ID no existe.
+  3. Pasa la entidad `Pedido` recuperada por tu método traductor `pedidoToDto()` y devuelve el `PedidoDto` resultante listo para mostrar.
+
 #### 🌐 Capa Controller (Endpoints REST)
 Para mantener la coherencia con la capa de servicio, dividiremos la entrada de la API en tres controladores especializados.
 Cada controlador debe interactuar **únicamente** con su servicio correspondiente y manejar exclusivamente DTOs.
@@ -142,7 +148,8 @@ Cada controlador debe interactuar **únicamente** con su servicio correspondient
 * Anótalo con `@RestController` y `@RequestMapping("/api/pedidos")`.
 * Inyecta (`@Autowired`) el `PedidoService`.
 * **Endpoints:**
-  * `POST` -> Recibe un `CrearPedidoDto`. Debe devolver el `PedidoDto` generado con un código de estado **HTTP 201 Created** (usando `@ResponseStatus(HttpStatus.CREATED)` o `ResponseEntity`).
+  * `POST` -> Recibe un `CrearPedidoDto`. Debe devolver el `PedidoDto` generado con un código de estado **HTTP 201 Created** 
+   (usando `@ResponseStatus(HttpStatus.CREATED)` o `ResponseEntity`).
   * `GET /{id}` -> Recibe el ID por path variable, llama a `pedidoService.buscarPorId()` y devuelve el `PedidoDto`.
 
 > **Nota de Arquitectura:** Los controladores son la "cara" de tu aplicación. Su única función es recibir la petición,
