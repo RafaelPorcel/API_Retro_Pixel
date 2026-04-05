@@ -60,7 +60,8 @@ public class ArticuloService {
         Integer stock = articuloParaActualizarStock.getStock();
         if (stock < cantidadComprada) {
             throw new StockInsuficienteException(
-                    "No hay stock suficiente para el artículo con id: " + id + " y nombre: " + articuloParaActualizarStock.getTitulo()
+                    "No hay stock suficiente para el artículo con id: " + id +
+                            " y nombre: " + articuloParaActualizarStock.getTitulo()
             );
         }
         Integer nuevoStock =  stock - cantidadComprada;
@@ -71,7 +72,7 @@ public class ArticuloService {
 
     // --- MÉTODOS DE MAPEO ---
 
-    private ArticuloDto articuloToDto(Articulo articulo) {
+    public ArticuloDto articuloToDto(Articulo articulo) {
         ArticuloDto dto = new ArticuloDto();
         dto.setId(articulo.getId());
         dto.setTitulo(articulo.getTitulo());
