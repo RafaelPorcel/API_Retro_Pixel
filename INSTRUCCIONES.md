@@ -89,12 +89,22 @@ Para una arquitectura profesional, se divide la lógica en tres servicios indepe
 * Implementa métodos para listar (`findAll`) y crear (`save`) categorías mapeando a `CategoriaDto`.
 
 **2. `ArticuloService`**
-* Inyecta (`@Autowired`) el `ArticuloRepository`.
-* Implementa métodos para listar y crear artículos.
-* **Método `actualizarStock(Long id, Integer cantidad)`:
-* *** Busca el artículo por ID. Si no existe -> lanza `ArticuloNoEncontradoException`.
-  * Verifica si el stock es suficiente; si no -> lanza `StockInsuficienteException`.
-  * Resta la cantidad al stock, guarda el cambio en la BD y devuelve la entidad actualizada.
+* Inyecta (`@Autowired`) el `ArticuloRepository` y el `CategoriaRepository`.
+* Implementa los métodos básicos para listar (`listarArticulos`) y crear (`crearArticulo`) manejando el mapeo con DTOs.
+
+* **Método `buscarArticuloPorId(Long id)`:**
+  * Debe buscar el artículo en la base de datos usando el repositorio.
+  * Si el artículo **no existe**, debe cortar la ejecución lanzando tu excepción personalizada: 
+  `throw new ArticuloNoEncontradoException("El artículo con ID " + id + " no existe");`.
+  * Si existe, devuelve la entidad `Articulo` encontrada.
+
+* **Método `actualizarStock(Long id, Integer cantidadComprada)`:**
+  *(Nota de Arquitectura: Este método devuelve la entidad `Articulo`, no un DTO, porque es una herramienta interna que usará el PedidoService).*
+  * **Paso 1 (Buscar):** Llama a tu propio método `buscarArticuloPorId(id)` para obtener el artículo. (Si no existe, la excepción saltará sola).
+  * **Paso 2 (Comprobar):** Extrae el stock actual del artículo. Si el stock es estrictamente **menor** que la `cantidadComprada`, 
+  lanza: `throw new StockInsuficienteException("No hay stock suficiente para el artículo");`.
+  * **Paso 3 (Restar):** Si pasas la validación anterior, calcula el nuevo stock (`stock actual - cantidadComprada`) y actualízalo en el artículo usando su `setter`.
+  * **Paso 4 (Guardar):** Guarda el artículo modificado usando `articuloRepository.save(...)` y retorna ese mismo artículo.
 
 **3. `PedidoService`**
 * Inyecta (`@Autowired`) el `PedidoRepository` y el `ArticuloService`.
